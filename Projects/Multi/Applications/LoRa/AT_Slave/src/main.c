@@ -218,22 +218,24 @@ static inline void runPassthrough() {
 	// PB13 -> PB3
 	// PA3 -> PA7
 	// PA6 -> PA2
-	// PB4 -> PB12
+	// PB12 -> PA15
 
 #define PORTA_OUT_MASK ((1 << 2) | (1 << 7) | (1 << 15))
+#define PORTB_OUT_MASK (1 << 3)
 
-	uint32_t InPortA = READ_REG(GPIOA->IDR);
 	uint32_t InPortB = READ_REG(GPIOB->IDR);
+	uint32_t InPortA = READ_REG(GPIOA->IDR);
 
 	uint32_t OutPortB = (((InPortB & GPIO_PIN_13) >> 10));
 	uint32_t OutPortA = ((InPortA & GPIO_PIN_3) << 4) | ((InPortA & GPIO_PIN_6) >> 4) | ((InPortB & GPIO_PIN_12) << 3);
 
-	WRITE_REG(GPIOA->BSRR, ((OutPortA & PORTA_OUT_MASK) | ((~OutPortA & PORTA_OUT_MASK) << 16)));
-	WRITE_REG(GPIOB->BSRR, ((OutPortB & (1 << 3)) | (((~OutPortB & (1 << 3)) << 16))));
+	uint32_t BssrPortA = ((OutPortA) | ((~OutPortA & PORTA_OUT_MASK) << 16));
+	uint32_t BssrPortB = ((OutPortB) | (((~OutPortB & PORTB_OUT_MASK) << 16)));
+
+	WRITE_REG(GPIOA->BSRR, BssrPortA);
+	WRITE_REG(GPIOB->BSRR, BssrPortB);
 	return;
 }
-
-
 
 LoRaMacRegion_t globalRegion = LORAMAC_REGION_EU868;
 
@@ -248,6 +250,9 @@ int main(void)
   /* Read SS input (GPIOPB12); if low, enter dumb mode */
   if (goDumb()) {
     setupPassthrough();
+
+    DISABLE_IRQ();
+
 	  while (1) {
         runPassthrough();
 	}
