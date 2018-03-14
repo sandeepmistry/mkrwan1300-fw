@@ -221,8 +221,8 @@ static __attribute__((optimize("O3"))) void runPassthrough() {
 	// PB12 -> PA15
 
 	while (1) {
-		uint32_t InPortA = READ_REG(GPIOA->IDR);
 		uint32_t InPortB = READ_REG(GPIOB->IDR);
+		uint32_t InPortA = READ_REG(GPIOA->IDR);
 
 		uint32_t OutPortA = ((InPortA & GPIO_PIN_3) << 4) | ((InPortA & GPIO_PIN_6) >> 4) | ((InPortB & GPIO_PIN_12) << 3);
 		uint32_t OutPortB = ((InPortB & GPIO_PIN_13) >> 10);
